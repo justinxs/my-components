@@ -12,6 +12,11 @@ import Col from './components/col'
 
 Vue.use(Row);
 Vue.use(Col);
+
+const myRow = Vue.component('MyRow');
+const myCol = Vue.component('MyCol');
+
+console.log(myRow, '返回构造器');
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */

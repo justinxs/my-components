@@ -30,7 +30,7 @@ export default {
         return parent ? parent.gutter : 0;
       }
     },
-    render(h) {
+    render(createElement) {
       let classList = [];
       let style = {};
   
@@ -63,8 +63,8 @@ export default {
           });
         }
       });
-      console.log(style);
-      return h(this.tag, {
+
+      return createElement(this.tag, {
         class: ['el-col', classList],
         style
       }, this.$slots.default);

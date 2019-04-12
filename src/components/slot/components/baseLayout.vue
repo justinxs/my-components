@@ -20,11 +20,14 @@ export default {
         }
     },
     created() {
+        //  this.$slot 获取在父组件中所有节点 <base-layout>[ this.$slot ]</base-layout>
         console.log(this.$slots);
+        //  this.$parent 获取父组件
         console.log(this.$parent.$options.name);
     }
 };
 </script>
 
 <style lang="scss" scoped>
+
 </style>
