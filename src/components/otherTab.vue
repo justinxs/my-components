@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <my-row :gutter="20">
       <my-col :span="6">
         <div class="grid-content bg-purple"></div>
@@ -32,6 +32,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.container {
+  width: 800px;
+  margin: 100px auto 0;
+}
 .el-row {
     margin-bottom: 20px;
     &:last-child {

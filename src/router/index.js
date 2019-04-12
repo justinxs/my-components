@@ -17,6 +17,11 @@ export default new Router({
       name: 'otherTab',
       component: () => {console.log('loading otherTab');return import('@/components/otherTab')}
     },
+    {
+      path: '/slot',
+      name: 'slot',
+      component: () => {console.log('loading slot');return import('@/components/slot')}
+    },
 
   ]
 })

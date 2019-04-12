@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <my-row>
       <my-col :span="24">
         <div class="grid-content bg-purple-dark"></div>

@@ -23,9 +23,10 @@ export default {
     computed: {
       gutter() {
         let parent = this.$parent;
-        while (parent && parent.$options.componentName !== 'ElRow') {
+        while (parent && parent.$options.componentName !== 'MyRow') {
           parent = parent.$parent;
         }
+        
         return parent ? parent.gutter : 0;
       }
     },
@@ -62,7 +63,7 @@ export default {
           });
         }
       });
-  
+      console.log(style);
       return h(this.tag, {
         class: ['el-col', classList],
         style
