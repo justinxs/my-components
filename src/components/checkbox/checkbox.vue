@@ -23,7 +23,7 @@
             aria-checked="mixed"
         >
             <span class="el-checkbox__inner"></span>
-            <input
+            <input 
                 v-if="trueLabel || falseLabel"
                 class="el-checkbox__original"
                 type="checkbox"
