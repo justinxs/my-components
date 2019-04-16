@@ -61,6 +61,10 @@
 
 
     <router-link to="/otherTab">跳 转</router-link>
+
+    <div class="tx-area" style="padding: 100px 100px;">
+      <textarea maxlength="300" style="width: 300px; height: 120px;resize: none;"></textarea>
+    </div>
   </div>
 </template>
 

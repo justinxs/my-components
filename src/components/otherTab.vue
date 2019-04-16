@@ -24,6 +24,8 @@
     <my-checkbox-group :value="checkedCities" @input="handleInput" @change="handleCheckedCitiesChange">
       <my-checkbox v-for="city in cities" :label="city" :key="city" @change="handleCheckboxChange">{{city}}</my-checkbox>
     </my-checkbox-group>
+
+    <my-checkbox v-for="v in arr" :label="v" :key="v" >{{v}}</my-checkbox>
   </div>
 </template>
 
@@ -34,6 +36,7 @@ import MyCheckbox from "./checkbox/checkbox";
 export default {
   data() {
     return {
+      arr: ['a', 'b', 'c', 'd'],
       checkAll: false,
       checkedCities: ["上海", "北京"],
       cities: cityOptions,
