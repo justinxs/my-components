@@ -162,7 +162,7 @@ export default {
   computed: {
     model: {
       get() {
-          console.log('首先触发model getter', this.isGroup? this.store: this.value !== undefined? this.value: this.selfModel);
+          // console.log('首先触发model getter', this.isGroup? this.store: this.value !== undefined? this.value: this.selfModel);
         return this.isGroup
           ? this.store
           : this.value !== undefined
