@@ -63,7 +63,8 @@
     <router-link to="/otherTab">跳 转</router-link>
 
     <div class="tx-area" style="padding: 100px 100px;">
-      <textarea maxlength="300" style="width: 300px; height: 120px;resize: none;"></textarea>
+      <p style="white-space: pre-line;">{{text}}</p>
+      <textarea maxlength="300" v-model="text" style="width: 300px; height: 120px;resize: none;"></textarea>
     </div>
 
     <t-checkbox v-model="checkedAll" @change="isCheckedAll">全选</t-checkbox>
@@ -87,6 +88,7 @@ export default {
       list: ['苹果', '香蕉', '芒果', '西瓜'],
       ctrols: [false, true, true, false],
       fruits: false,
+      text: ''
     }
   },
   methods: {
