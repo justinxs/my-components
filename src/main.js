@@ -10,8 +10,13 @@ import 'element-ui/lib/theme-chalk/index.css'
 import Row from './components/row'
 import Col from './components/col'
 
+import 'vant/lib/index.css';
+
 Vue.use(Row);
 Vue.use(Col);
+
+// 将Promise抛出为全局对象
+window.Promise = Promise
 
 const myRow = Vue.component('MyRow');
 const myCol = Vue.component('MyCol');
