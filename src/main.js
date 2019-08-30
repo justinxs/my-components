@@ -31,3 +31,7 @@ new Vue({
   components: { App },
   template: '<App/>'
 })
+
+window.showImage = function showImage() {
+  console.log(this);
+}

@@ -36,32 +36,46 @@ import { saveAs } from 'file-saver';
 export default {
     data() {
         return {
-            base64Data: null
+            base64Data: null,
+            longBase64Regx: /^\s*data:([a-z]+\/[a-z0-9-+.]+(;[a-z-]+=[a-z0-9-]+)?)?(;base64)?,([a-z0-9!$&',()*+;=\-._~:@\/?%\s]*?)\s*$/i,
+            base64Regx: /^data:image\/\w+;base64,/i,
+            IEregx: /(?:ms|\()(ie)\s([\w\.]+)/i,
+            ua: window.navigator.userAgent,
+            qrcodeOptions: {
+                text: '',
+                width: 128,
+                height: 128,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            }
         };
     },
     mounted() {
-        this.renderQr("http://www.baidu.com");    
+        this.renderQr("#erweima", "http://www.baidu.com");    
         this.copyImageListener("#copy-btn", ".result-img");
 
         this.loadingImg();
     },
     methods: {
+        isElementNode(obj) {
+            if (typeof obj === 'object' && obj.nodeType === 1 && obj instanceof window.Node) {
+                return true
+            } else {
+                return false
+            }
+        },
         async loadingImg() {
             let imgList = [...document.querySelectorAll('#img-container img')];
-            const ua = window.navigator.userAgent;
-            const isEdge = /Edge/i.test(ua);
-            const isIE10 = /(?:ms|\()(ie)\s([\w\.]+)/i.exec(ua) && /(?:ms|\()(ie)\s([\w\.]+)/i.exec(ua)[2] <= 10;
-            let isBase64Src = (src) => /^\s*data:([a-z]+\/[a-z0-9-+.]+(;[a-z-]+=[a-z0-9-]+)?)?(;base64)?,([a-z0-9!$&',()*+;=\-._~:@\/?%\s]*?)\s*$/i.test(src);
+            const isEdge = /Edge/i.test(this.ua);
+            const isIE10 = this.IEregx.exec(this.ua) && this.IEregx.exec(this.ua)[2] <= 10;
+            let isBase64Src = (src) => this.base64Regx.test(src);
 
-            if (isIE10 || isEdge) {
+            if (isEdge || isIE10) {
                 console.log('ieieieieieieie');
-                let base64Image = imgList.filter(img => {
-                    console.log(img.getAttribute('data-cors'));
-                    return img.src && !isBase64Src(img.src) && img.getAttribute('data-cors') === "cross"
-                });
-                let proArr = base64Image.map(img => this.IEgetImageAsBase64(img.src));
-                console.log(proArr, 'sdsdsdsdsd');
-                let dataList = await Promise.all(proArr).then(data => data);
+                let base64Image = imgList.filter(img => img.src && !isBase64Src(img.src) && img.getAttribute('data-cors') === "cross");
+
+                let dataList = await Promise.all(base64Image.map(img => this.IEgetImageAsBase64(img.src))).then(data => data);
                 dataList.forEach((base64URL, i) => base64Image[i].src = base64URL);
 
                 this.getCanvas()
@@ -77,21 +91,15 @@ export default {
         },
 
         //  生成二维码
-        renderQr(url) {
-            let container = document.querySelector("#erweima");
-            new QRCode(container, {
-                text: url,
-                width: 128,
-                height: 128,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            })
+        renderQr(container, url) {
+            if (!container || !url) return;
+            
+            let boxDom = this.isElementNode(container) ? container : document.querySelector(container);
+            new QRCode(boxDom, Object.assign(this.qrcodeOptions, {text: url}));
         },
 
         // html转canvas
         getCanvas() {
-            console.log('加载完成');
             const that = this;
             let container = document.querySelector("#img-container"),
             //  元素的大小及其相对于视口的位置
@@ -114,7 +122,7 @@ export default {
             context.msImageSmoothingEnabled = false;
             context.imageSmoothingEnabled = false;
 
-            console.log(rect, scrollX, scrollY );
+            console.log('加载完成', rect, scrollX, scrollY );
             let opts = {
                 canvas,
                 useCORS: true,
@@ -123,8 +131,8 @@ export default {
                 width: rect.width,
                 height: rect.height,
                 scrollY: isFixed ? 0 : -scrollX,
-                  scrollX: isFixed ? 0 : -scrollY
-              };
+                scrollX: isFixed ? 0 : -scrollY
+            };
             html2canvas(container, opts).then(function(canvas) {
                 console.log('渲染完毕');
                 that.base64Data = canvas.toDataURL("image/png", 1);
@@ -179,18 +187,13 @@ export default {
 
         //  保存下载图片
         saveFile(data, filename) {
-            const ua = navigator.userAgent;
             //  ie ie11 edge
             const regex = /(?:ms|\()(ie)\s([\w\.]+)|trident|(edge|edgios|edga|edg)/i
             data = this.base64Data;
             filename = 'share.png';
 
-            let IE_VERSION = /(?:ms|\()(ie)\s([\w\.]+)/i.exec(ua);
-            IE_VERSION = IE_VERSION && IE_VERSION[2];
-
-            console.log(ua, IE_VERSION);
-            if (regex.test(ua)) {
-                navigator.msSaveBlob(this.b64toBlob(data), filename);
+            if (regex.test(this.ua)) {
+                navigator.msSaveBlob && navigator.msSaveBlob(this.b64toBlob(data), filename);
             } else {
                 let save_link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
                 save_link.href = data;
@@ -216,30 +219,35 @@ export default {
             return new Promise((resolve, reject) => {
                 let xhr = new XMLHttpRequest();
                 xhr.onload = function () {
-                    console.log(this.response);
-                    let dataURI = URL.createObjectURL(this.response);
-                    let img = new Image();
-                    img.onload = function () {
-                        // 此时你就可以使用canvas对img为所欲为了
-                        let canvas = document.createElement('canvas'),
-                        context = canvas.getContext('2d');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        // 关闭抗锯齿
-                        context.mozImageSmoothingEnabled = false;
-                        context.webkitImageSmoothingEnabled = false;
-                        context.msImageSmoothingEnabled = false;
-                        context.imageSmoothingEnabled = false;
+                    if (this.response) {
+                        let dataURI = URL.createObjectURL(this.response);
+                        let img = new Image();
+                        img.onload = function () {
+                            // 此时你就可以使用canvas对img为所欲为了
+                            let canvas = document.createElement('canvas'),
+                            context = canvas.getContext('2d');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            // 关闭抗锯齿
+                            context.mozImageSmoothingEnabled = false;
+                            context.webkitImageSmoothingEnabled = false;
+                            context.msImageSmoothingEnabled = false;
+                            context.imageSmoothingEnabled = false;
 
-                        context.drawImage(img, 0, 0, img.width, img.height);
+                            context.drawImage(img, 0, 0, img.width, img.height);
 
-                        resolve(canvas.toDataURL('image/jpeg', 1))
-                        // ... code ...
-                        // 图片用完后记得释放内存
-                        URL.revokeObjectURL(dataURI);
-                        canvas = context = img = null;
-                    };
-                    img.src = dataURI;
+                            resolve(canvas.toDataURL('image/jpeg', 1))
+                            // ... code ...
+                            // 图片用完后记得释放内存
+                            URL.revokeObjectURL(dataURI);
+                            canvas = context = img = null;
+                        };
+                        img.src = dataURI;
+                    } else {
+                        console.log('图片请求失败');
+                        resolve(url)
+                    }
+                    
                 }
                 xhr.onerror = function () {
                     console.log('图片请求失败');
@@ -254,11 +262,13 @@ export default {
         //  输入框复制图片替换
         changeImage() {
             let container = document.querySelector('.paste-area');
-            let content = container.innerHTML;
             let imageList = [...container.querySelectorAll('img')];
 
-            let arr = imageList.filter(img => img.className.indexOf('copy-image') > -1);
-            arr.forEach(img => img.src = '/static/img/1561023224631.c240599.jpg')
+            let arr = imageList.filter(img => this.base64Regx.test(img.src));
+            arr.forEach(img => {
+                img.src = '/static/img/1561023224631.c240599.jpg'
+                img.setAttribute('onclick', 'showImage()')
+            })
             console.log(arr);
             
         }
@@ -283,8 +293,7 @@ export default {
   }
   img {
     width: 100px;
-    height: 100px;
-    border-radius: 50%;
+    height: auto;
   }
 }
 
