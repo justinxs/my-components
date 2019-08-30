@@ -22,6 +22,36 @@ export default new Router({
       name: 'slot',
       component: () => import('@/components/slot')
     },
+    {
+      path: '/pagination',
+      name: 'pagination',
+      component: () => import('@/components/pagination')
+    },
+    {
+      path: '/svg',
+      name: 'svg',
+      component: () => import('@/components/svgAnimation')
+    },
+    {
+      path: '/vant',
+      name: 'van',
+      component: () => import('@/components/vantCom/dialog')
+    },
+    {
+      path: '/tree',
+      name: 'tree',
+      component: () => import('@/components/tree')
+    },
+    {
+      path: '/editor',
+      name: 'editor',
+      component: () => import('@/components/editor')
+    },
+    {
+      path: '/canvas',
+      name: 'canvas',
+      component: () => import('@/components/canvas')
+    },
 
   ]
 })
