@@ -20,7 +20,8 @@
 
     <div class="paste-area" contenteditable="true"></div>
     <div class="control-panle">
-      <span class="control-btn" id="copy-btn" data-clipboard-action="copy">复制</span>
+      <!-- <span class="control-btn" id="copy-btn" data-clipboard-action="copy">复制</span> -->
+      <span class="control-btn" id="copy-btn" @click="copyHandle">复制</span>
       <span class="control-btn" @click="saveFile">下载</span>
       <span class="control-btn" @click="getCanvas">生成canvas</span>
 
@@ -33,7 +34,8 @@ import 'cf-blob.js';
 import 'canvas-toBlob';
 
 import html2canvas from "html2canvas";
-import ClipboardJS from "clipboard";
+// import ClipboardJS from "clipboard";
+import * as clipboard from "clipboard-polyfill"
 import QRCode from "qrcodejs2";
 import { saveAs } from 'file-saver';
 export default {
@@ -56,7 +58,7 @@ export default {
     },
     mounted() {
         this.renderQr("#erweima", "http://www.baidu.com");    
-        this.copyImageListener("#copy-btn", ".result-img");
+        // this.copyImageListener("#copy-btn", ".result-img");
 
         this.loadingImg();
     },
@@ -147,23 +149,44 @@ export default {
             if (!btnClass || !targetClass) return;
 
             let clipboard = new ClipboardJS(btnClass, {
-              target: function(trigger) {
-                return document.querySelector(targetClass);
-              }
+                target: function(trigger) {
+                    // let ddd = document.createElement('div');
+                    // ddd.innerHTML = 'sdsd'
+                    // return ddd
+                    return document.querySelector(targetClass);
+                }
             });
             clipboard.on("success", function(e) {
-              console.info("Action:", e.action);
-              console.info("Text:", e.text);
-              console.info("Trigger:", e.trigger);
+                console.info("Action:", e.action);
+                console.info("Text:", e.text);
+                console.info("Trigger:", e.trigger);
 
-              e.clearSelection();
+                e.clearSelection();
             });
             clipboard.on("error", function(e) {
-              console.error("Action:", e.action);
-              console.error("Trigger:", e.trigger);
+                console.error("Action:", e.action);
+                console.error("Trigger:", e.trigger);
             });
         },
 
+
+        //  复制dom
+        copyHandle() {
+            var resultField = document.getElementById("markup-dom-copy-result");
+            let copyDom = document.createElement('div');
+            let img = new Image();
+            img.src = this.base64Data;
+            copyDom.appendChild(img);
+            var dt = new clipboard.DT();
+            dt.setData("text/html", new XMLSerializer().serializeToString(copyDom));
+            // dt.setData("text/plain", copyDom.innerText);
+
+            clipboard.write(dt).then(function(){
+                console.log("copy success");
+            }, function(err){
+                console.log('copy errro', err);
+            });
+        },
         //  canvas转blob文件流
         canvsaToBlob(canvas, type = 'image/png', q = 1) {
             return new Promise((resolve, reject) => {
@@ -182,8 +205,8 @@ export default {
             let base64 = dataURI.substring(heard_end + 1);
 
 
-            if (0) {
-                let byteString =window.atob(base64),
+            if (window.atob) {
+                let byteString = window.atob(base64),
                 ab = new ArrayBuffer(byteString.length),
                 ia = new Uint8Array(ab);
 
@@ -336,33 +359,32 @@ export default {
     top: 300px;
     left: 100px;
     display: inline-block;
-  width: 500px;
-  border: 2px solid #ccc;
-  padding: 10px;
-  background-color: skyblue;
-  > * {
-      float: left;
-  }
-  img {
-    width: 100px;
-    height: auto;
-  }
+    width: 500px;
+    border: 2px solid #ccc;
+    padding: 10px;
+    background-color: skyblue;
+    > * {
+        float: left;
+    }
+    img {
+        width: 100px;
+        height: auto;
+    }
 }
 
 .control-panle {
-  .control-btn {
-    display: inline-block;
-    padding: 8px;
-    border: 1px solid #ccc;
-    background-color: skyblue;
-  }
+    .control-btn {
+        display: inline-block;
+        padding: 8px;
+        border: 1px solid #ccc;
+        background-color: skyblue;
+    }
 }
 
 .paste-area {
-    
-  margin: 40px auto;
-  width: 400px;
-  height: 400px;
-  border: 1px solid #ccc;
+    margin: 40px auto;
+    width: 400px;
+    height: 400px;
+    border: 1px solid #ccc;
 }
 </style>
