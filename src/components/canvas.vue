@@ -15,7 +15,7 @@
     </div>
     
     <div class="result-img" style="display: inline-block;">
-      <img id="canvas-img" class="copy-image" :src="base64Data" alt />
+      <img class="copy-image" :src="base64Data" alt />
     </div>
 
     <div class="paste-area" contenteditable="true"></div>
@@ -29,6 +29,9 @@
   </div>
 </template>
 <script>
+import 'cf-blob.js';
+import 'canvas-toBlob';
+
 import html2canvas from "html2canvas";
 import ClipboardJS from "clipboard";
 import QRCode from "qrcodejs2";
@@ -38,7 +41,7 @@ export default {
         return {
             base64Data: null,
             longBase64Regx: /^\s*data:([a-z]+\/[a-z0-9-+.]+(;[a-z-]+=[a-z0-9-]+)?)?(;base64)?,([a-z0-9!$&',()*+;=\-._~:@\/?%\s]*?)\s*$/i,
-            base64Regx: /^data:image\/\w+;base64,/i,
+            base64Regx: /\s*;\s*base64\s*(?:;|$)/i,
             IEregx: /(?:ms|\()(ie)\s([\w\.]+)/i,
             ua: window.navigator.userAgent,
             qrcodeOptions: {
@@ -69,12 +72,12 @@ export default {
             let imgList = [...document.querySelectorAll('#img-container img')];
             const isEdge = /Edge/i.test(this.ua);
             const isIE10 = this.IEregx.exec(this.ua) && this.IEregx.exec(this.ua)[2] <= 10;
-            let isBase64Src = (src) => this.base64Regx.test(src);
+            let isBase64Src = (src) => this.longBase64Regx.test(src);
 
             if (isEdge || isIE10) {
                 console.log('ieieieieieieie');
                 let base64Image = imgList.filter(img => img.src && !isBase64Src(img.src) && img.getAttribute('data-cors') === "cross");
-
+                console.log(base64Image);
                 let dataList = await Promise.all(base64Image.map(img => this.IEgetImageAsBase64(img.src))).then(data => data);
                 dataList.forEach((base64URL, i) => base64Image[i].src = base64URL);
 
@@ -99,7 +102,7 @@ export default {
         },
 
         // html转canvas
-        getCanvas() {
+        getCanvas(type = 'image/png', q = 1) {
             const that = this;
             let container = document.querySelector("#img-container"),
             //  元素的大小及其相对于视口的位置
@@ -135,7 +138,7 @@ export default {
             };
             html2canvas(container, opts).then(function(canvas) {
                 console.log('渲染完毕');
-                that.base64Data = canvas.toDataURL("image/png", 1);
+                that.base64Data = canvas.toDataURL(type, q);
             });
         },
 
@@ -175,7 +178,10 @@ export default {
 
         //  base64 转blob文件流
         b64toBlob(dataURI, type = 'image/png') {
-            let byteString = atob(dataURI.split(',')[1]),
+            let heard_end = dataURI.indexOf(',');
+            let data = dataURI.substring(heard_end + 1);
+            let len = data.length / 4 * 3;
+            let byteString = window.atob ? window.atob(data) : len,
             ab = new ArrayBuffer(byteString.length),
             ia = new Uint8Array(ab);
 
@@ -264,7 +270,7 @@ export default {
             let container = document.querySelector('.paste-area');
             let imageList = [...container.querySelectorAll('img')];
 
-            let arr = imageList.filter(img => this.base64Regx.test(img.src));
+            let arr = imageList.filter(img => this.longBase64Regx.test(img.src));
             arr.forEach(img => {
                 img.src = '/static/img/1561023224631.c240599.jpg'
                 img.setAttribute('onclick', 'showImage()')
