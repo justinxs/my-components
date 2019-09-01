@@ -179,16 +179,62 @@ export default {
         //  base64 转blob文件流
         b64toBlob(dataURI, type = 'image/png') {
             let heard_end = dataURI.indexOf(',');
-            let data = dataURI.substring(heard_end + 1);
-            let len = data.length / 4 * 3;
-            let byteString = window.atob ? window.atob(data) : len,
-            ab = new ArrayBuffer(byteString.length),
-            ia = new Uint8Array(ab);
+            let base64 = dataURI.substring(heard_end + 1);
 
-            for (var i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
+
+            if (0) {
+                let byteString =window.atob(base64),
+                ab = new ArrayBuffer(byteString.length),
+                ia = new Uint8Array(ab);
+
+                for (var i = 0; i < byteString.length; i++) {
+                    ia[i] = byteString.charCodeAt(i);
+                }
+                console.log('window');
+                return new Blob([ab], { type });
+            } else {
+                var
+			      len = base64.length
+			    , buffer = new Uint8Array(len / 4 * 3 | 0)
+			    , i = 0
+			    , outptr = 0
+			    , last = [0, 0]
+			    , state = 0
+                , save = 0
+                , base64_ranks = new Uint8Array([
+		              62, -1, -1, -1, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1
+		            , -1, -1,  0, -1, -1, -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9
+		            , 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25
+		            , -1, -1, -1, -1, -1, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
+		            , 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
+	            ])
+			    , rank
+			    , code
+			    , undef;
+		        while (len--) {
+		        	code = base64.charCodeAt(i++);
+		        	rank = base64_ranks[code-43];
+		        	if (rank !== 255 && rank !== undef) {
+		        		last[1] = last[0];
+		        		last[0] = code;
+		        		save = (save << 6) | rank;
+		        		state++;
+		        		if (state === 4) {
+		        			buffer[outptr++] = save >>> 16;
+		        			if (last[1] !== 61 /* padding character */) {
+		        				buffer[outptr++] = save >>> 8;
+		        			}
+		        			if (last[0] !== 61 /* padding character */) {
+		        				buffer[outptr++] = save;
+		        			}
+		        			state = 0;
+		        		}
+		        	}
+                }
+                console.log('my');
+                 return new Blob([buffer], { type });
             }
-            return new Blob([ab], { type });
+           
         },
 
         //  保存下载图片
